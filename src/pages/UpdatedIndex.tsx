@@ -7,12 +7,12 @@ import { SpendingChart } from '../components/SpendingChart';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
 import { UpdatedInsightsPanel } from '../components/UpdatedInsightsPanel';
 import { LanguageProvider } from '../contexts/LanguageContext';
-import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useExpenses } from '../hooks/useExpenses';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-const DashboardContent: React.FC = () => {
+const UpdatedIndex: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { expenses, loading, fetchExpenses, addExpense } = useExpenses();
   const [searchQuery, setSearchQuery] = useState('');
@@ -67,43 +67,35 @@ const DashboardContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <UpdatedDashboardHeader
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          timeFilter={timeFilter}
-          onTimeFilterChange={setTimeFilter}
-        />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-          {/* Left Column - Forms and Insights */}
-          <div className="lg:col-span-1 space-y-6">
-            <UpdatedExpenseForm onAddExpense={handleAddExpense} />
-            <UpdatedInsightsPanel expenses={expenses} />
-          </div>
+    <LanguageProvider>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+        <div className="container mx-auto px-4 py-6 max-w-7xl">
+          <UpdatedDashboardHeader
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            timeFilter={timeFilter}
+            onTimeFilterChange={setTimeFilter}
+          />
           
-          {/* Right Column - Analytics and List */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <SpendingChart expenses={expenses} />
-              <CategoryBreakdown expenses={expenses} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+            {/* Left Column - Forms and Insights */}
+            <div className="lg:col-span-1 space-y-6">
+              <UpdatedExpenseForm onAddExpense={handleAddExpense} />
+              <UpdatedInsightsPanel expenses={expenses} />
             </div>
-            <UpdatedExpenseList expenses={expenses} />
+            
+            {/* Right Column - Analytics and List */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SpendingChart expenses={expenses} />
+                <CategoryBreakdown expenses={expenses} />
+              </div>
+              <UpdatedExpenseList expenses={expenses} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
-
-const UpdatedIndex: React.FC = () => {
-  return (
-    <AuthProvider>
-      <LanguageProvider>
-        <DashboardContent />
-      </LanguageProvider>
-    </AuthProvider>
+    </LanguageProvider>
   );
 };
 
