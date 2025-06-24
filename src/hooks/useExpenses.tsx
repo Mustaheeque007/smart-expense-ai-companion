@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -29,11 +29,16 @@ export const useExpenses = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const fetchExpenses = async (timeFilter?: 'week' | 'month' | 'year', searchQuery?: string) => {
-    if (!user) return;
+  const fetchExpenses = useCallback(async (timeFilter?: 'week' | 'month' | 'year', searchQuery?: string) => {
+    if (!user) {
+      console.log('No user found, skipping expense fetch');
+      return;
+    }
 
     setLoading(true);
     try {
+      console.log('Fetching expenses with filter:', timeFilter, 'search:', searchQuery);
+      
       let query = supabase
         .from('expenses')
         .select(`
@@ -71,7 +76,10 @@ export const useExpenses = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching expenses:', error);
+        throw error;
+      }
 
       let filteredExpenses = data || [];
 
@@ -84,10 +92,13 @@ export const useExpenses = () => {
         );
       }
 
-      setExpenses(filteredExpenses.map(expense => ({
+      const processedExpenses = filteredExpenses.map(expense => ({
         ...expense,
         attachments: expense.expense_attachments || []
-      })));
+      }));
+
+      console.log('Fetched expenses:', processedExpenses.length);
+      setExpenses(processedExpenses);
     } catch (error) {
       console.error('Error fetching expenses:', error);
       toast({
@@ -98,12 +109,17 @@ export const useExpenses = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, toast]);
 
-  const addExpense = async (expenseData: Omit<Expense, 'id' | 'created_at' | 'attachments'>, files?: File[]) => {
-    if (!user) return;
+  const addExpense = useCallback(async (expenseData: Omit<Expense, 'id' | 'created_at' | 'attachments'>, files?: File[]) => {
+    if (!user) {
+      console.log('No user found, cannot add expense');
+      return;
+    }
 
     try {
+      console.log('Adding expense:', expenseData);
+      
       const { data: expense, error: expenseError } = await supabase
         .from('expenses')
         .insert({
@@ -113,7 +129,12 @@ export const useExpenses = () => {
         .select()
         .single();
 
-      if (expenseError) throw expenseError;
+      if (expenseError) {
+        console.error('Error adding expense:', expenseError);
+        throw expenseError;
+      }
+
+      console.log('Expense added:', expense);
 
       // Upload files if any
       if (files && files.length > 0) {
@@ -121,20 +142,30 @@ export const useExpenses = () => {
           const fileExt = file.name.split('.').pop();
           const fileName = `${user.id}/${expense.id}/${Date.now()}.${fileExt}`;
 
+          console.log('Uploading file:', fileName);
+
           const { error: uploadError } = await supabase.storage
             .from('expense-attachments')
             .upload(fileName, file);
 
-          if (uploadError) throw uploadError;
+          if (uploadError) {
+            console.error('Error uploading file:', uploadError);
+            throw uploadError;
+          }
 
           // Save attachment record
-          await supabase.from('expense_attachments').insert({
+          const { error: attachmentError } = await supabase.from('expense_attachments').insert({
             expense_id: expense.id,
             file_name: file.name,
             file_path: fileName,
             file_type: file.type,
             file_size: file.size,
           });
+
+          if (attachmentError) {
+            console.error('Error saving attachment:', attachmentError);
+            throw attachmentError;
+          }
         }
       }
 
@@ -153,13 +184,14 @@ export const useExpenses = () => {
       });
       throw error;
     }
-  };
+  }, [user, toast]);
 
   useEffect(() => {
     if (user) {
+      console.log('User changed, fetching expenses for:', user.email);
       fetchExpenses();
     }
-  }, [user]);
+  }, [user, fetchExpenses]);
 
   return {
     expenses,

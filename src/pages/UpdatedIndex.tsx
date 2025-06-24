@@ -12,7 +12,7 @@ import { useExpenses } from '../hooks/useExpenses';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-const DashboardContent = () => {
+const DashboardContent: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { expenses, loading, fetchExpenses, addExpense } = useExpenses();
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,19 +20,23 @@ const DashboardContent = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Auth loading:', authLoading, 'User:', user?.email);
     if (!authLoading && !user) {
+      console.log('Redirecting to auth page...');
       navigate('/auth');
     }
   }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (user) {
+      console.log('Fetching expenses for user:', user.email);
       const filter = timeFilter === 'all' ? undefined : timeFilter as 'week' | 'month' | 'year';
       fetchExpenses(filter, searchQuery);
     }
-  }, [timeFilter, searchQuery, user]);
+  }, [timeFilter, searchQuery, user, fetchExpenses]);
 
   const handleAddExpense = async (expenseData: any, files?: File[]) => {
+    console.log('Adding expense:', expenseData);
     await addExpense(expenseData, files);
     // Refresh expenses after adding
     const filter = timeFilter === 'all' ? undefined : timeFilter as 'week' | 'month' | 'year';
@@ -93,7 +97,7 @@ const DashboardContent = () => {
   );
 };
 
-const UpdatedIndex = () => {
+const UpdatedIndex: React.FC = () => {
   return (
     <AuthProvider>
       <LanguageProvider>
