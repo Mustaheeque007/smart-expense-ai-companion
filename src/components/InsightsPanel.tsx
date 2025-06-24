@@ -10,13 +10,13 @@ export const InsightsPanel = ({ expenses }) => {
   const totalSpent = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const avgDailySpending = expenses.length > 0 ? totalSpent / 7 : 0;
 
-  const topCategory = expenses.reduce((acc, expense) => {
+  const topCategory = expenses.reduce((acc: Record<string, number>, expense) => {
     acc[expense.category] = (acc[expense.category] || 0) + expense.amount;
     return acc;
   }, {});
 
   const highestCategory = Object.entries(topCategory).reduce((a, b) => 
-    topCategory[a[0]] > topCategory[b[0]] ? a : b, ['', 0]
+    a[1] > b[1] ? a : b, ['', 0]
   );
 
   const insights = [
@@ -48,7 +48,7 @@ export const InsightsPanel = ({ expenses }) => {
       description: highestCategory[1] ? new Intl.NumberFormat('en-US', {
         style: 'currency',
         currency: 'USD'
-      }).format(highestCategory[1]) : ''
+      }).format(Number(highestCategory[1])) : ''
     }
   ];
 
