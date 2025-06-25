@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Wallet, Brain, Globe, User } from 'lucide-react';
+import { Wallet, Brain, Globe, User, Link } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -62,10 +62,16 @@ export const UpdatedDashboardHeader = ({
           </Card>
           
           {user && (
-            <Button variant="outline" onClick={() => navigate('/profile')}>
-              <User className="h-4 w-4 mr-2" />
-              Profile
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => navigate('/links')}>
+                <Link className="h-4 w-4 mr-2" />
+                Links Store
+              </Button>
+              <Button variant="outline" onClick={() => navigate('/profile')}>
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </Button>
+            </>
           )}
         </div>
       </div>

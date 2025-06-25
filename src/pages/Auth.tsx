@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Wallet, User, Mail, Lock, MapPin, GraduationCap, FileText } from 'lucide-react';
+import { Wallet, User, Mail, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
@@ -14,9 +14,6 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [address, setAddress] = useState('');
-  const [qualification, setQualification] = useState('');
-  const [about, setAbout] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { signUp, signIn, user } = useAuth();
@@ -59,7 +56,7 @@ const Auth = () => {
           return;
         }
         
-        const { error } = await signUp(email, password, username, address, qualification, about);
+        const { error } = await signUp(email, password, username);
         if (error) {
           toast({
             title: 'Signup Error',
@@ -131,64 +128,20 @@ const Auth = () => {
             </div>
 
             {!isLogin && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="username" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Username *
-                  </Label>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                    placeholder="Choose a username"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Address
-                  </Label>
-                  <Input
-                    id="address"
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="Enter your address (optional)"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="qualification" className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4" />
-                    Qualification
-                  </Label>
-                  <Input
-                    id="qualification"
-                    type="text"
-                    value={qualification}
-                    onChange={(e) => setQualification(e.target.value)}
-                    placeholder="Enter your qualification (optional)"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="about" className="flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    About
-                  </Label>
-                  <Input
-                    id="about"
-                    type="text"
-                    value={about}
-                    onChange={(e) => setAbout(e.target.value)}
-                    placeholder="Tell us about yourself (optional)"
-                  />
-                </div>
-              </>
+              <div className="space-y-2">
+                <Label htmlFor="username" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Username
+                </Label>
+                <Input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="Choose a username"
+                />
+              </div>
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>

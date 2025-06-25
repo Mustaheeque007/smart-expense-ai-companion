@@ -83,6 +83,39 @@ export type Database = {
         }
         Relationships: []
       }
+      income: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          date: string
+          description: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category: string
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           about: string | null
@@ -110,6 +143,78 @@ export type Database = {
           qualification?: string | null
           updated_at?: string | null
           username?: string
+        }
+        Relationships: []
+      }
+      reminders: {
+        Row: {
+          amount: number | null
+          category: string
+          created_at: string
+          description: string | null
+          due_date: string
+          id: string
+          is_completed: boolean | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number | null
+          category: string
+          created_at?: string
+          description?: string | null
+          due_date: string
+          id?: string
+          is_completed?: boolean | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number | null
+          category?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string
+          id?: string
+          is_completed?: boolean | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stored_links: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+          url?: string
+          user_id?: string
         }
         Relationships: []
       }

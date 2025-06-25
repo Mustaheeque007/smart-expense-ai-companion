@@ -9,6 +9,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import UpdatedIndex from "./pages/UpdatedIndex";
 import Auth from "./pages/Auth";
 import Profile from "./pages/Profile";
+import LinksStore from "./pages/LinksStore";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -32,6 +33,7 @@ const App: React.FC = () => {
               <Route path="/" element={<UpdatedIndex />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/links" element={<LinksStore />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
