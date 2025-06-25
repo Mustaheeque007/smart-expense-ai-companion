@@ -85,7 +85,11 @@ export const useIncome = () => {
       const { data, error } = await supabase
         .from('income')
         .insert({
-          ...incomeData,
+          amount: incomeData.amount,
+          description: incomeData.description,
+          category: incomeData.category,
+          date: incomeData.date,
+          currency: incomeData.currency || 'USD',
           user_id: user.id,
         })
         .select()
@@ -109,11 +113,13 @@ export const useIncome = () => {
 
         const uploadedFiles = await Promise.all(uploadPromises);
         
-        // Update income record with file paths
-        await supabase
+        // Update income record with file paths using the correct column name
+        const { error: updateError } = await supabase
           .from('income')
           .update({ file_attachments: uploadedFiles })
           .eq('id', data.id);
+
+        if (updateError) throw updateError;
       }
 
       toast({
@@ -137,9 +143,17 @@ export const useIncome = () => {
     if (!user) return;
 
     try {
+      // Only update the fields that are allowed by the database schema
+      const updateData: any = {};
+      if (incomeData.amount !== undefined) updateData.amount = incomeData.amount;
+      if (incomeData.description !== undefined) updateData.description = incomeData.description;
+      if (incomeData.category !== undefined) updateData.category = incomeData.category;
+      if (incomeData.date !== undefined) updateData.date = incomeData.date;
+      if (incomeData.currency !== undefined) updateData.currency = incomeData.currency;
+
       const { data, error } = await supabase
         .from('income')
-        .update(incomeData)
+        .update(updateData)
         .eq('id', id)
         .eq('user_id', user.id)
         .select()
