@@ -13,9 +13,10 @@ interface RemindersPanelProps {
   reminders: Reminder[];
   onAddReminder: (reminderData: Omit<Reminder, 'id' | 'created_at'>) => Promise<void>;
   onToggleReminder: (id: string, isCompleted: boolean) => void;
+  onAddIncome?: (incomeData: any) => Promise<void>;
 }
 
-export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder }: RemindersPanelProps) => {
+export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onAddIncome }: RemindersPanelProps) => {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -53,6 +54,27 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder }: R
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleToggleReminder = async (id: string, isCompleted: boolean) => {
+    const reminder = reminders.find(r => r.id === id);
+    
+    // If reminder is being marked as complete and has an amount, add it as income
+    if (isCompleted && reminder && reminder.amount && onAddIncome) {
+      try {
+        await onAddIncome({
+          amount: reminder.amount,
+          description: `Payment received: ${reminder.title}`,
+          category: 'Other',
+          date: new Date().toISOString().split('T')[0],
+          currency: 'USD',
+        });
+      } catch (error) {
+        console.error('Error adding income from reminder:', error);
+      }
+    }
+    
+    onToggleReminder(id, isCompleted);
   };
 
   const formatCurrency = (amount: number) => {
@@ -171,7 +193,7 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder }: R
               >
                 <Checkbox
                   checked={reminder.is_completed}
-                  onCheckedChange={(checked) => onToggleReminder(reminder.id, checked as boolean)}
+                  onCheckedChange={(checked) => handleToggleReminder(reminder.id, checked as boolean)}
                 />
                 <div className="flex-1">
                   <h4 className={`font-medium ${reminder.is_completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
@@ -184,6 +206,9 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder }: R
                   </div>
                   {reminder.description && (
                     <p className="text-sm text-gray-600 mt-1">{reminder.description}</p>
+                  )}
+                  {reminder.is_completed && reminder.amount && (
+                    <p className="text-xs text-green-600 mt-1">✓ Automatically added to income</p>
                   )}
                 </div>
               </div>

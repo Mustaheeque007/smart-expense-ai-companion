@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { UpdatedDashboardHeader } from '../components/UpdatedDashboardHeader';
 import { UpdatedExpenseForm } from '../components/UpdatedExpenseForm';
 import { IncomeForm } from '../components/IncomeForm';
+import { IncomeList } from '../components/IncomeList';
 import { UpdatedExpenseList } from '../components/UpdatedExpenseList';
 import { FinancialOverview } from '../components/FinancialOverview';
 import { RemindersPanel } from '../components/RemindersPanel';
@@ -21,7 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const UpdatedIndex: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { expenses, loading: expensesLoading, fetchExpenses, addExpense } = useExpenses();
-  const { income, loading: incomeLoading, fetchIncome, addIncome } = useIncome();
+  const { income, loading: incomeLoading, fetchIncome, addIncome, updateIncome, deleteIncome } = useIncome();
   const { reminders, fetchReminders, addReminder, toggleReminder } = useReminders();
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
@@ -51,9 +53,21 @@ const UpdatedIndex: React.FC = () => {
     refreshData();
   };
 
-  const handleAddIncome = async (incomeData: any) => {
+  const handleAddIncome = async (incomeData: any, files?: File[]) => {
     console.log('Adding income:', incomeData);
-    await addIncome(incomeData);
+    await addIncome(incomeData, files);
+    refreshData();
+  };
+
+  const handleUpdateIncome = async (id: string, incomeData: any) => {
+    console.log('Updating income:', id, incomeData);
+    await updateIncome(id, incomeData);
+    refreshData();
+  };
+
+  const handleDeleteIncome = async (id: string) => {
+    console.log('Deleting income:', id);
+    await deleteIncome(id);
     refreshData();
   };
 
@@ -132,6 +146,12 @@ const UpdatedIndex: React.FC = () => {
                       <CategoryBreakdown expenses={expenses} />
                     </div>
                     <UpdatedExpenseList expenses={expenses} onRefresh={refreshData} />
+                    <IncomeList 
+                      income={income}
+                      onUpdate={handleUpdateIncome}
+                      onDelete={handleDeleteIncome}
+                      onRefresh={refreshData}
+                    />
                   </div>
                 </div>
               </TabsContent>
@@ -148,6 +168,7 @@ const UpdatedIndex: React.FC = () => {
                   reminders={reminders} 
                   onAddReminder={handleAddReminder}
                   onToggleReminder={toggleReminder}
+                  onAddIncome={handleAddIncome}
                 />
               </TabsContent>
 

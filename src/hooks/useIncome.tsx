@@ -11,6 +11,8 @@ export interface Income {
   category: string;
   date: string;
   created_at: string;
+  currency?: string;
+  file_attachments?: string[];
 }
 
 export const useIncome = () => {
@@ -76,7 +78,7 @@ export const useIncome = () => {
     }
   }, [user, toast]);
 
-  const addIncome = useCallback(async (incomeData: Omit<Income, 'id' | 'created_at'>) => {
+  const addIncome = useCallback(async (incomeData: Omit<Income, 'id' | 'created_at'>, files?: File[]) => {
     if (!user) return;
 
     try {
@@ -90,6 +92,29 @@ export const useIncome = () => {
         .single();
 
       if (error) throw error;
+
+      // Handle file uploads if any
+      if (files && files.length > 0) {
+        const uploadPromises = files.map(async (file) => {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${data.id}/${Math.random()}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('income-attachments')
+            .upload(fileName, file);
+
+          if (uploadError) throw uploadError;
+          return fileName;
+        });
+
+        const uploadedFiles = await Promise.all(uploadPromises);
+        
+        // Update income record with file paths
+        await supabase
+          .from('income')
+          .update({ file_attachments: uploadedFiles })
+          .eq('id', data.id);
+      }
 
       toast({
         title: 'Success',
@@ -108,10 +133,70 @@ export const useIncome = () => {
     }
   }, [user, toast]);
 
+  const updateIncome = useCallback(async (id: string, incomeData: Partial<Income>) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('income')
+        .update(incomeData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Income updated successfully!',
+      });
+
+      return data;
+    } catch (error) {
+      console.error('Error updating income:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update income.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [user, toast]);
+
+  const deleteIncome = useCallback(async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('income')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Income deleted successfully!',
+      });
+    } catch (error) {
+      console.error('Error deleting income:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete income.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [user, toast]);
+
   return {
     income,
     loading,
     fetchIncome,
     addIncome,
+    updateIncome,
+    deleteIncome,
   };
 };
