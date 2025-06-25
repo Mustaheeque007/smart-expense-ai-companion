@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { UpdatedDashboardHeader } from '../components/UpdatedDashboardHeader';
 import { UpdatedExpenseForm } from '../components/UpdatedExpenseForm';
@@ -14,7 +13,7 @@ import { LanguageProvider } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useExpenses } from '../hooks/useExpenses';
 import { useIncome } from '../hooks/useIncome';
-import { useReminders } from '../hooks/useReminders';
+import { useReminders, Reminder } from '../hooks/useReminders';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -58,7 +57,7 @@ const UpdatedIndex: React.FC = () => {
     refreshData();
   };
 
-  const handleAddReminder = async (reminderData: any) => {
+  const handleAddReminder = async (reminderData: Omit<Reminder, 'id' | 'created_at'>) => {
     console.log('Adding reminder:', reminderData);
     await addReminder(reminderData);
     refreshData();
