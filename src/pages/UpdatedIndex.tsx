@@ -58,6 +58,12 @@ const UpdatedIndex: React.FC = () => {
     refreshData();
   };
 
+  const handleAddReminder = async (reminderData: any) => {
+    console.log('Adding reminder:', reminderData);
+    await addReminder(reminderData);
+    refreshData();
+  };
+
   const refreshData = () => {
     const filter = timeFilter === 'all' ? undefined : timeFilter as 'week' | 'month' | 'year';
     fetchExpenses(filter, searchQuery);
@@ -141,7 +147,7 @@ const UpdatedIndex: React.FC = () => {
               <TabsContent value="reminders" className="space-y-6">
                 <RemindersPanel 
                   reminders={reminders} 
-                  onAddReminder={addReminder}
+                  onAddReminder={handleAddReminder}
                   onToggleReminder={toggleReminder}
                 />
               </TabsContent>

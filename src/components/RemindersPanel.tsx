@@ -11,7 +11,7 @@ import { Reminder } from '../hooks/useReminders';
 
 interface RemindersPanelProps {
   reminders: Reminder[];
-  onAddReminder: (reminderData: any) => Promise<void>;
+  onAddReminder: (reminderData: Omit<Reminder, 'id' | 'created_at'>) => Promise<void>;
   onToggleReminder: (id: string, isCompleted: boolean) => void;
 }
 
