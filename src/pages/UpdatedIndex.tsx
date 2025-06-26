@@ -8,9 +8,11 @@ import { UpdatedExpenseList } from '../components/UpdatedExpenseList';
 import { FinancialOverview } from '../components/FinancialOverview';
 import { RemindersPanel } from '../components/RemindersPanel';
 import { CalendarView } from '../components/CalendarView';
+import { YearCalendarView } from '../components/YearCalendarView';
 import { SpendingChart } from '../components/SpendingChart';
 import { CategoryBreakdown } from '../components/CategoryBreakdown';
 import { UpdatedInsightsPanel } from '../components/UpdatedInsightsPanel';
+import { ReportGenerator } from '../components/ReportGenerator';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useExpenses } from '../hooks/useExpenses';
@@ -24,7 +26,7 @@ const UpdatedIndex: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const { expenses, loading: expensesLoading, fetchExpenses, addExpense } = useExpenses();
   const { income, loading: incomeLoading, fetchIncome, addIncome, updateIncome, deleteIncome } = useIncome();
-  const { reminders, fetchReminders, addReminder, toggleReminder } = useReminders();
+  const { reminders, fetchReminders, addReminder, updateReminder, deleteReminder, toggleReminder } = useReminders();
   const [searchQuery, setSearchQuery] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
   const navigate = useNavigate();
@@ -77,6 +79,22 @@ const UpdatedIndex: React.FC = () => {
     refreshData();
   };
 
+  const handleUpdateReminder = async (id: string, reminderData: Partial<Reminder>) => {
+    console.log('Updating reminder:', id, reminderData);
+    if (updateReminder) {
+      await updateReminder(id, reminderData);
+      refreshData();
+    }
+  };
+
+  const handleDeleteReminder = async (id: string) => {
+    console.log('Deleting reminder:', id);
+    if (deleteReminder) {
+      await deleteReminder(id);
+      refreshData();
+    }
+  };
+
   const refreshData = () => {
     const filter = timeFilter === 'all' ? undefined : timeFilter as 'week' | 'month' | 'year';
     fetchExpenses(filter, searchQuery);
@@ -125,11 +143,13 @@ const UpdatedIndex: React.FC = () => {
 
           <div className="mt-6">
             <Tabs defaultValue="dashboard" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                 <TabsTrigger value="forms">Add Data</TabsTrigger>
                 <TabsTrigger value="reminders">Reminders</TabsTrigger>
-                <TabsTrigger value="calendar">Calendar</TabsTrigger>
+                <TabsTrigger value="calendar">Monthly</TabsTrigger>
+                <TabsTrigger value="year-calendar">Yearly</TabsTrigger>
+                <TabsTrigger value="reports">Reports</TabsTrigger>
               </TabsList>
               
               <TabsContent value="dashboard" className="space-y-6">
@@ -167,8 +187,10 @@ const UpdatedIndex: React.FC = () => {
                 <RemindersPanel 
                   reminders={reminders} 
                   onAddReminder={handleAddReminder}
+                  onUpdateReminder={handleUpdateReminder}
+                  onDeleteReminder={handleDeleteReminder}
                   onToggleReminder={toggleReminder}
-                  onAddIncome={handleAddIncome}
+                  onAddExpense={handleAddExpense}
                 />
               </TabsContent>
 
@@ -177,6 +199,21 @@ const UpdatedIndex: React.FC = () => {
                   expenses={expenses}
                   income={income}
                   reminders={reminders}
+                />
+              </TabsContent>
+
+              <TabsContent value="year-calendar" className="space-y-6">
+                <YearCalendarView 
+                  expenses={expenses}
+                  income={income}
+                  reminders={reminders}
+                />
+              </TabsContent>
+
+              <TabsContent value="reports" className="space-y-6">
+                <ReportGenerator 
+                  expenses={expenses}
+                  income={income}
                 />
               </TabsContent>
             </Tabs>

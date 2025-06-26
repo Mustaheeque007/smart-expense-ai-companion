@@ -18,6 +18,7 @@ export const UpdatedExpenseForm = ({ onAddExpense }: UpdatedExpenseFormProps) =>
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [currency, setCurrency] = useState('INR');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [files, setFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,14 @@ export const UpdatedExpenseForm = ({ onAddExpense }: UpdatedExpenseFormProps) =>
     'Other'
   ];
 
+  const currencies = [
+    { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+    { code: 'USD', symbol: '$', name: 'US Dollar' },
+    { code: 'EUR', symbol: '€', name: 'Euro' },
+    { code: 'GBP', symbol: '£', name: 'British Pound' },
+    { code: 'JPY', symbol: '¥', name: 'Japanese Yen' }
+  ];
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!amount || !description || !category) return;
@@ -44,8 +53,9 @@ export const UpdatedExpenseForm = ({ onAddExpense }: UpdatedExpenseFormProps) =>
         amount: parseFloat(amount),
         description,
         category,
+        currency,
         date,
-        ai_suggested: true, // Simulating AI categorization
+        ai_suggested: true,
       };
 
       await onAddExpense(expenseData, files);
@@ -54,6 +64,7 @@ export const UpdatedExpenseForm = ({ onAddExpense }: UpdatedExpenseFormProps) =>
       setAmount('');
       setDescription('');
       setCategory('');
+      setCurrency('INR');
       setDate(new Date().toISOString().split('T')[0]);
       setFiles([]);
     } catch (error) {
@@ -62,6 +73,8 @@ export const UpdatedExpenseForm = ({ onAddExpense }: UpdatedExpenseFormProps) =>
       setLoading(false);
     }
   };
+
+  const selectedCurrency = currencies.find(c => c.code === currency);
 
   return (
     <Card className="shadow-lg border-0 bg-white/80 backdrop-blur-sm">
@@ -73,18 +86,36 @@ export const UpdatedExpenseForm = ({ onAddExpense }: UpdatedExpenseFormProps) =>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount ($)</Label>
-            <Input
-              id="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Amount ({selectedCurrency?.symbol})</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currency">Currency</Label>
+              <Select value={currency} onValueChange={setCurrency} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((curr) => (
+                    <SelectItem key={curr.code} value={curr.code}>
+                      {curr.symbol} {curr.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

@@ -80,6 +80,67 @@ export const useReminders = () => {
     }
   }, [user, toast, fetchReminders]);
 
+  const updateReminder = useCallback(async (id: string, reminderData: Partial<Reminder>) => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('reminders')
+        .update(reminderData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Reminder updated successfully!',
+      });
+
+      fetchReminders();
+      return data;
+    } catch (error) {
+      console.error('Error updating reminder:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update reminder.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [user, toast, fetchReminders]);
+
+  const deleteReminder = useCallback(async (id: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('reminders')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Reminder deleted successfully!',
+      });
+
+      fetchReminders();
+    } catch (error) {
+      console.error('Error deleting reminder:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete reminder.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [user, toast, fetchReminders]);
+
   const toggleReminder = useCallback(async (id: string, isCompleted: boolean) => {
     try {
       const { error } = await supabase
@@ -105,6 +166,8 @@ export const useReminders = () => {
     loading,
     fetchReminders,
     addReminder,
+    updateReminder,
+    deleteReminder,
     toggleReminder,
   };
 };

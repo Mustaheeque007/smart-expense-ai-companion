@@ -17,9 +17,9 @@ export const FinancialOverview = ({ expenses, income }: FinancialOverviewProps) 
   const isOverspending = netBalance < 0;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -68,7 +68,7 @@ export const FinancialOverview = ({ expenses, income }: FinancialOverviewProps) 
           </div>
           {isOverspending && (
             <p className="text-sm text-red-600 mt-1">
-              You're spending ${formatCurrency(Math.abs(netBalance))} more than your income
+              You're spending {formatCurrency(Math.abs(netBalance))} more than your income
             </p>
           )}
         </CardContent>

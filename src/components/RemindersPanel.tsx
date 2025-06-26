@@ -6,18 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Bell, Plus } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Bell, Plus, Edit, Trash2 } from 'lucide-react';
 import { Reminder } from '../hooks/useReminders';
 
 interface RemindersPanelProps {
   reminders: Reminder[];
   onAddReminder: (reminderData: Omit<Reminder, 'id' | 'created_at'>) => Promise<void>;
+  onUpdateReminder?: (id: string, reminderData: Partial<Reminder>) => Promise<void>;
+  onDeleteReminder?: (id: string) => Promise<void>;
   onToggleReminder: (id: string, isCompleted: boolean) => void;
-  onAddIncome?: (incomeData: any) => Promise<void>;
+  onAddExpense?: (expenseData: any) => Promise<void>;
 }
 
-export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onAddIncome }: RemindersPanelProps) => {
+export const RemindersPanel = ({ reminders, onAddReminder, onUpdateReminder, onDeleteReminder, onToggleReminder, onAddExpense }: RemindersPanelProps) => {
   const [showForm, setShowForm] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
@@ -27,50 +31,80 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onA
 
   const categories = ['loan', 'bill', 'medicine', 'recharge'];
 
+  const resetForm = () => {
+    setTitle('');
+    setDescription('');
+    setCategory('');
+    setDueDate('');
+    setAmount('');
+    setEditingReminder(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title || !category || !dueDate) return;
 
     setLoading(true);
     try {
-      await onAddReminder({
+      const reminderData = {
         title,
         description,
         category,
         due_date: dueDate,
         amount: amount ? parseFloat(amount) : undefined,
         is_completed: false,
-      });
+      };
 
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setCategory('');
-      setDueDate('');
-      setAmount('');
+      if (editingReminder && onUpdateReminder) {
+        await onUpdateReminder(editingReminder.id, reminderData);
+      } else {
+        await onAddReminder(reminderData);
+      }
+
+      resetForm();
       setShowForm(false);
     } catch (error) {
-      console.error('Error adding reminder:', error);
+      console.error('Error saving reminder:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (reminder: Reminder) => {
+    setEditingReminder(reminder);
+    setTitle(reminder.title);
+    setDescription(reminder.description || '');
+    setCategory(reminder.category);
+    setDueDate(reminder.due_date);
+    setAmount(reminder.amount?.toString() || '');
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (onDeleteReminder && confirm('Are you sure you want to delete this reminder?')) {
+      try {
+        await onDeleteReminder(id);
+      } catch (error) {
+        console.error('Error deleting reminder:', error);
+      }
     }
   };
 
   const handleToggleReminder = async (id: string, isCompleted: boolean) => {
     const reminder = reminders.find(r => r.id === id);
     
-    // If reminder is being marked as complete and has an amount, add it as income
-    if (isCompleted && reminder && reminder.amount && onAddIncome) {
+    // If reminder is being marked as complete and has an amount, add it as expense
+    if (isCompleted && reminder && reminder.amount && onAddExpense) {
       try {
-        await onAddIncome({
+        await onAddExpense({
           amount: reminder.amount,
-          description: `Payment received: ${reminder.title}`,
-          category: 'Other',
+          description: `Payment: ${reminder.title}`,
+          category: 'Bills & Utilities',
+          currency: 'INR',
           date: new Date().toISOString().split('T')[0],
-          currency: 'USD',
         });
       } catch (error) {
-        console.error('Error adding income from reminder:', error);
+        console.error('Error adding expense from reminder:', error);
       }
     }
     
@@ -78,9 +112,9 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onA
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -93,7 +127,10 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onA
             Reminders
           </CardTitle>
           <Button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              resetForm();
+              setShowForm(!showForm);
+            }}
             variant="outline"
             size="sm"
           >
@@ -144,7 +181,7 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onA
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">Amount (optional)</Label>
+              <Label htmlFor="amount">Amount (₹) (optional)</Label>
               <Input
                 id="amount"
                 type="number"
@@ -167,9 +204,12 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onA
 
             <div className="flex gap-2">
               <Button type="submit" disabled={loading}>
-                {loading ? 'Adding...' : 'Add Reminder'}
+                {loading ? 'Saving...' : (editingReminder ? 'Update Reminder' : 'Add Reminder')}
               </Button>
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                resetForm();
+                setShowForm(false);
+              }}>
                 Cancel
               </Button>
             </div>
@@ -208,8 +248,26 @@ export const RemindersPanel = ({ reminders, onAddReminder, onToggleReminder, onA
                     <p className="text-sm text-gray-600 mt-1">{reminder.description}</p>
                   )}
                   {reminder.is_completed && reminder.amount && (
-                    <p className="text-xs text-green-600 mt-1">✓ Automatically added to income</p>
+                    <p className="text-xs text-green-600 mt-1">✓ Automatically added to expenses</p>
                   )}
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(reminder)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(reminder.id)}
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </div>
             ))
